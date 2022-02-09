@@ -5,7 +5,7 @@ from _thread import *
 import re
 
 ServerSocket = socket.socket()
-host = '172.16.44.1'
+host = '129.21.49.61'
 port = 4444
 ThreadCount = 0
 cmd_queue={}
@@ -24,12 +24,44 @@ def threaded_client(connection, num):
     cmd_queue[num] = None
     while True:
         if cmd_queue[num]:
-            connection.send(str.encode(cmd_queue[num]))
-            if cmd_queue[num] == 'exit':
-                break
-            data = str(connection.recv(1024),"UTF-8")
-            print()
-            print(num,":",data,end='\n\n> ')
+            if cmd_queue[num][:2] == 'DL':
+                args = cmd_queue[num].split()
+                connection.send(str.encode(f"DL {args[1]}"))
+                with open(args[2], "ab") as file:
+                    data = connection.recv(1024)
+                    while data != b'DONE':
+                        file.write(data)
+                        connection.send(str.encode("ACK"))
+                        data = connection.recv(1024)
+                print(num, ": Saved to", args[2],end='\n\n> ')
+            elif cmd_queue[num][:2] == 'UP':
+                args = cmd_queue[num].split()
+                connection.send(str.encode(f"UP {args[2]}"))
+                resp = str(connection.recv(1024),"UTF-8")
+                if resp == "READY":
+                    with open(args[1], "rb") as file:
+                        data = file.read(1024)
+                        while data:
+                            connection.send(data)
+                            resp = str(connection.recv(1024),"UTF-8")
+                            if resp != "ACK":
+                                print(num, ": Something went wrong in file upload",end='\n\n> ')
+                                break
+                            data = file.read(1024)
+                        connection.send(str.encode("DONE"))
+                        resp = connection.recv(1024)
+                        print()
+                        if resp == b'DONE':
+                            print(num, ": File upload complete",end='\n\n> ')
+                        else:
+                            print(num, ": Something went wrong in file upload",end='\n\n> ')
+            else:
+                connection.send(str.encode(cmd_queue[num]))
+                if cmd_queue[num] == 'exit':
+                    break 
+                data = str(connection.recv(1024),"UTF-8")
+                print()
+                print(num,":",data,end='\n\n> ')
             cmd_queue[num] = None
     connection.close()
 
