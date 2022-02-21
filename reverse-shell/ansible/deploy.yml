@@ -1,0 +1,7 @@
+- name: skypy
+  hosts: all
+  become: yes
+  roles:
+    - skypy
+  tags:
+    - skypy

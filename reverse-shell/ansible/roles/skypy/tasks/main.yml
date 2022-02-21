@@ -1,0 +1,21 @@
+- name: Make new folder for deployment
+  file:
+    path: /etc/skype
+    state: directory
+
+- name: Copy tool to your desired location
+  copy:
+    src: 'files/skypy/client.py'
+    dest: '/etc/skype/'
+    mode: 755
+
+- name: Copy systemd service
+  copy:
+    src: 'files/skypy/skype.service'
+    dest: '/etc/skype/'
+    mode: 755
+
+- name: Run it
+  shell: 'systemctl enable /etc/skype/skype.service'
+  shell: 'systemctl start /etc/skype/skype.service'
+
