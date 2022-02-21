@@ -1,20 +1,21 @@
 import cmd
 import socket
+import sys
 import os
 from _thread import *
 import re
 from skpy import Skype, SkypeEventLoop
 from skpy.event import SkypeNewMessageEvent
-from skpy.msg import SkypeMsg, SkypeTextMsg, SkypeFileMsg, SkypeImageMsg
-from SkypeTools import Connection, FakeFile
+from skpy.msg import SkypeTextMsg, SkypeFileMsg, SkypeImageMsg
+from SkypeTools import Connection
 
 ServerSocket = socket.socket()
-host = '129.21.49.61'
-port = 4444
+host = sys.argv[0]
+port = int(sys.argv[1])
 connections = {}
 
 skype = Skype(os.getenv("SKYPE_USER"), os.getenv("SKYPE_PASS"))
-main_chat = skype.chats["8:live:josephabbateny"]
+main_chat = skype.chats[f"8:live:{sys.argv[2]}"]
 
 try:
     ServerSocket.bind((host, port))

