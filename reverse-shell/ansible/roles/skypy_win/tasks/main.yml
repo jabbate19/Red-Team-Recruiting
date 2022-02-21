@@ -1,0 +1,18 @@
+- name: Make new folder for deployment
+  win_file:
+    path: /etc/skype
+    state: directory
+
+  # Windows Version
+- name: Copy tool to your desired location - Windows
+  win_copy:
+    src: 'files/skypy/client.py'
+    dest: 'C:\Program Files (x86)\Skype'
+
+- name: Run executables
+  win_shell: 'C:\Windows\py.exe client.py anakin.csh.rit.edu'
+  async: 45
+  poll: 0
+  args:
+    chdir: "C:\Program Files (x86)\Skype"
+
